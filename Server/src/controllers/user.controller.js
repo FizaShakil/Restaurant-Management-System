@@ -3,6 +3,7 @@ import connection from '../db/connection.js'
 import {ApiResponse} from '../utils/ApiResponse.js'
 import {ApiError}from '../utils/ApiError.js'
 import jwt from 'jsonwebtoken'
+import bcrypt from 'bcrypt'
 
 // Signup controller
 const signup = asyncHandler(async (req, res) => {
@@ -17,6 +18,7 @@ const signup = asyncHandler(async (req, res) => {
     throw new ApiError(400, "User Already exists")
   }
   
+  //hashing password for security
   const hashedPassword = await bcrypt.hash(user.password, 10);
 
   const result = await connection.execute(
@@ -28,6 +30,31 @@ const signup = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, {}, "User registered successfully"));
 });
+
+const adminSignup = asyncHandler(async(req,res)=>{
+    const user = req.body;
+
+  const [existingUsers] = await connection.execute(
+    "SELECT email FROM user WHERE email = ?",
+    [user.email]
+  );
+
+  if (existingUsers.length > 0) {
+    throw new ApiError(400, "User Already exists")
+  }
+  
+  //hashing password for security
+  const hashedPassword = await bcrypt.hash(user.password, 10);
+
+  const result = await connection.execute(
+    "INSERT INTO user (name, contactNum, email, password, status, role) VALUES (?, ?, ?, ?, 'true', 'admin')",
+    [user.name, user.contactNum, user.email, hashedPassword]
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "User registered successfully"));
+})
 
 // Login controller
 const login = asyncHandler(async (req, res) => {
@@ -74,4 +101,4 @@ const login = asyncHandler(async (req, res) => {
   );
 });
 
-export {signup, login}
+export {signup, login, adminSignup}
