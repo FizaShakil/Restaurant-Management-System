@@ -3,7 +3,7 @@ import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import connection from "../db/connection.js";
 
-const addProductDeatils = asyncHandler(async(req,res)=>{
+const addProductDetails = asyncHandler(async(req,res)=>{
     const product = req.body
     const addedProduct = await connection.execute(
         "INSERT into product (name, categoryId, description, price, status) VALUES(?,?,?,?,'true')",
@@ -19,18 +19,23 @@ const addProductDeatils = asyncHandler(async(req,res)=>{
     )
 })
 
-const getProductDetails = asyncHandler(async(req,res)=>{
-    const [getDetails]= await connection.execute(
-        "SELECT p.id, p.name, p.description, p.price, p.status, c.id as categoryId, c.name as categoryName from product as p INNER JOIN category as c WHERE p.categoryId = c.id"
-    )
-    if(!getDetails){
+const getProductDetails = asyncHandler(async (req, res) => {
+  const [getDetails] = await connection.execute(
+    `SELECT 
+   p.id, p.name, p.description, p.price, p.status,
+   c.id AS categoryId, c.name AS categoryName
+   FROM product AS p
+   INNER JOIN category AS c ON p.categoryId = c.id;`
+  );
+
+   if(!getDetails){
         throw new ApiError(500, "Error fetching product details")
     }
-    return res.status(200)
-    .json(
-        new ApiResponse(200, getDetails, "Product Details fetched successfully")
-    )
-})
+
+  return res.status(200).json(
+    new ApiResponse(200, getDetails, "Product details fetched successfully")
+  );
+});
 
 const getByCategoryId = asyncHandler(async(req,res)=>{
     const id = req.params.id
@@ -48,6 +53,7 @@ const getByCategoryId = asyncHandler(async(req,res)=>{
     )
 })
 
+// Get By ID
 const getById = asyncHandler(async(req,res)=>{
     const id = req.params.id
     const [getById] = await connection.execute(
@@ -110,4 +116,4 @@ const updateStatus = asyncHandler(async(req,res)=>{
     new ApiResponse(200, updateUserStatus, "Product Deleted Successfully")
    )
 })
-export {addProductDeatils, getProductDetails, getByCategoryId, getById, updateProductDetails, deleteProduct, updateStatus}
+export {addProductDetails, getProductDetails, getByCategoryId, getById, updateProductDetails, deleteProduct, updateStatus}
