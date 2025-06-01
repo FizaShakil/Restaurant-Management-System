@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.bg{
+    background-color: #000000;
+    background-image: linear-gradient(rgba(8, 1, 20, 0.852),rgba(0, 0, 0, 0.336)) , url("../src/assets/cinematic-film-location-decor.jpg");
+    /* background-size: cover; */
+}
