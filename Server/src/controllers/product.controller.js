@@ -25,7 +25,7 @@ const getProductDetails = asyncHandler(async (req, res) => {
    p.id, p.name, p.description, p.price, p.status,
    c.id AS categoryId, c.name AS categoryName
    FROM product AS p
-   INNER JOIN category AS c ON p.categoryId = c.id;`
+   LEFT JOIN category AS c ON p.categoryId = c.id;`
   );
 
    if(!getDetails){
@@ -37,21 +37,35 @@ const getProductDetails = asyncHandler(async (req, res) => {
   );
 });
 
-const getByCategoryId = asyncHandler(async(req,res)=>{
-    const id = req.params.id
-    const [getByCatId] = await connection.execute(
-        "SELECT id, name FROM product WHERE categoryId=? and status='true' ",
-        [id]
-    )
-    if(!getByCatId){
-        throw new ApiError(500, "Error in fetching product details by category ID")
-    }
+// const getByCategoryId = asyncHandler(async(req,res)=>{
+//     const id = req.params.id
+//     const [getByCatId] = await connection.execute(
+//         "SELECT id, name FROM product WHERE categoryId=? and status='true' ",
+//         [id]
+//     )
+//     if(!getByCatId){
+//         throw new ApiError(500, "Error in fetching product details by category ID")
+//     }
 
-    return res.status(200)
-    .json(
-        new ApiResponse(200, getByCatId, "Products by category ID fetched successfully")
-    )
-})
+//     return res.status(200)
+//     .json(
+//         new ApiResponse(200, getByCatId, "Products by category ID fetched successfully")
+//     )
+// })
+const getAllCategories = asyncHandler(async (req, res) => {
+  const [categories] = await connection.execute(
+    "SELECT id, name FROM category WHERE status = 'true'"
+  );
+
+  if (!categories || categories.length === 0) {
+    throw new ApiError(404, "No categories found");
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, categories, "Categories fetched successfully")
+  );
+});
+
 
 // Get By ID
 const getById = asyncHandler(async(req,res)=>{
@@ -116,4 +130,4 @@ const updateStatus = asyncHandler(async(req,res)=>{
     new ApiResponse(200, updateUserStatus, "Product Deleted Successfully")
    )
 })
-export {addProductDetails, getProductDetails, getByCategoryId, getById, updateProductDetails, deleteProduct, updateStatus}
+export {addProductDetails, getProductDetails, getAllCategories, getById, updateProductDetails, deleteProduct, updateStatus}

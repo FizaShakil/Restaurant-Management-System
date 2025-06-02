@@ -5,13 +5,14 @@ import { addProductDetails, deleteProduct, getByCategoryId, getById, getProductD
 
 const productRouter = Router()
 
-productRouter.post('/add-product-details', authenticateToken, checkRole, addProductDetails)
-productRouter.get('/get-product-details', authenticateToken, getProductDetails)
-productRouter.get('/get-by-categoryid/:id', authenticateToken, getByCategoryId)
+productRouter.post('/add-product-details', checkRole, addProductDetails)
+productRouter.get('/get-product-details', getProductDetails)
+// productRouter.get('/get-by-categoryid/:id', getByCategoryId)
+productRouter.get('/get-all-categories', getAllCategories);
 productRouter.get('/get-by-id/:id', authenticateToken, getById)
-productRouter.patch('/update-product-details', authenticateToken, checkRole, updateProductDetails)
-productRouter.delete('/delete-product/:id', authenticateToken, checkRole, deleteProduct)
-productRouter.patch('/update-status', authenticateToken, checkRole, updateStatus)
+productRouter.patch('/update-product-details',checkRole, updateProductDetails)
+productRouter.delete('/delete-product/:id', checkRole, deleteProduct)
+productRouter.patch('/update-status', checkRole, updateStatus)
 
 
 export default productRouter

@@ -94,7 +94,13 @@ const login = asyncHandler(async (req, res) => {
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
   );
 
-  return res.status(200).json(
+    const options = {
+        httpOnly: true,
+        secure: false //become true on development
+    }
+
+  return res.status(200)
+  .json(
     new ApiResponse(200, {
       user: payload,
       accessToken: accessToken,
