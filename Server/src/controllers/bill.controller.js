@@ -17,6 +17,10 @@ const generateReport = asyncHandler(async (req, res) => {
   const orderDetails = req.body;
   const productDetailsReport = JSON.parse(orderDetails.productDetails);
 
+   console.log("Request Body:", req.body);
+   console.log("User Email:", req.user?.email);
+
+  console.log("Order Details---> ",orderDetails)
   // 1. Save order in the database
   const [insertResult] = await connection.execute(
     "INSERT INTO bill (name, uuid, email, contactNum, paymentMethod, total, productDetails, createdBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -73,15 +77,19 @@ const generateReport = asyncHandler(async (req, res) => {
 
 //get pdf
 const getPdf = asyncHandler(async(req, res)=>{
-    const orderDetails = req.body
-    const productDetailsReport = JSON.parse(orderDetails.productDetails);
-    const pdfPath = './public/temp'+orderDetails.uuid+'.pdf';
+    const orderDetails = req.query
+  const productDetailsReport = orderDetails.productDetails;
+
+    const pdfPath = './public/temp/'+orderDetails.uuid+'.pdf';
 
     if(fs.existsSync(pdfPath)){
         res.contentType("application/pdf")
         fs.createReadStream(pdfPath).pipe(res)
     }
   const ejsTemplatePath = path.join(__dirname, "src", "utils", "report.ejs");
+  console.log("EJS Path:", ejsTemplatePath);
+
+  // const ejsTemplatePath = path.join(__dirname, "src", "utils", "report.ejs");
 
   const html = await ejs.renderFile(ejsTemplatePath, {
     productDetails: productDetailsReport,
@@ -145,3 +153,49 @@ const deleteBill = asyncHandler(async(req,res)=>{
 })
 
 export {generateReport, getPdf, getBills, deleteBill}
+
+// const getPdf = asyncHandler(async (req, res) => {
+//   const {
+//     name,
+//     email,
+//     contactNum,
+//     paymentMethod,
+//     totalAmount,
+//     productDetails,
+//     uuid,
+//   } = req.body;
+
+//   const pdfPath = './public/temp/' + uuid + '.pdf';
+
+//   if (fs.existsSync(pdfPath)) {
+//     res.contentType("application/pdf");
+//     return fs.createReadStream(pdfPath).pipe(res);
+//   }
+
+//   const ejsTemplatePath = path.join(__dirname, "utils", "report.ejs");
+//   console.log("EJS Path:", ejsTemplatePath);
+
+//   const html = await ejs.renderFile(ejsTemplatePath, {
+//     productDetails: productDetails,
+//     name,
+//     email,
+//     contactNum,
+//     paymentMethod,
+//     totalAmount,
+//   });
+
+//   const browser = await puppeteer.launch();
+//   const page = await browser.newPage();
+//   await page.setContent(html, { waitUntil: "networkidle0" });
+
+//   const pdfDir = path.join(__dirname, "public", "temp");
+//   if (!fs.existsSync(pdfDir)) {
+//     fs.mkdirSync(pdfDir, { recursive: true });
+//   }
+
+//   await page.pdf({ path: pdfPath, format: "A4" });
+//   await browser.close();
+
+//   res.contentType("application/pdf");
+//   fs.createReadStream(pdfPath).pipe(res);
+// });

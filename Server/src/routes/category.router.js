@@ -5,8 +5,8 @@ import { addCategory, getCategories, updateCategory } from "../controllers/categ
 
 const categoryRouter = Router()
 
-categoryRouter.post('/add-category-details', authenticateToken, checkRole, addCategory)
-categoryRouter.get('/get-category-details', authenticateToken, getCategories)
-categoryRouter.patch('/update-category-details', authenticateToken, checkRole, updateCategory)
+categoryRouter.post('/add-category-details', checkRole, addCategory)
+categoryRouter.get('/get-category-details',  getCategories)
+categoryRouter.patch('/update-category-details', checkRole, updateCategory)
 
 export default categoryRouter

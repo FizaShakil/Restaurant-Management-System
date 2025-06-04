@@ -54,7 +54,7 @@ const getProductDetails = asyncHandler(async (req, res) => {
 // })
 const getAllCategories = asyncHandler(async (req, res) => {
   const [categories] = await connection.execute(
-    "SELECT id, name FROM category WHERE status = 'true'"
+    "SELECT id, name FROM category"
   );
 
   if (!categories || categories.length === 0) {
@@ -117,17 +117,17 @@ const deleteProduct = asyncHandler(async(req,res)=>{
 })
 
 const updateStatus = asyncHandler(async(req,res)=>{
-    const user = req.body;
+    const product = req.body;
     const [updateUserStatus] = await connection.execute(
         "UPDATE product set status=? where id=?",
-        [user.status, user.id]
+        [product.status, product.id]
     )
     if(updateUserStatus.affectedRows == 0){
     throw new ApiError(400, "Product ID not found")
    }
      return res.status(200)
    .json(
-    new ApiResponse(200, updateUserStatus, "Product Deleted Successfully")
+    new ApiResponse(200, updateUserStatus, "Product Status updated Successfully")
    )
 })
 export {addProductDetails, getProductDetails, getAllCategories, getById, updateProductDetails, deleteProduct, updateStatus}
