@@ -98,7 +98,9 @@ Refer to the Crow’s Foot ER diagram for visual schema representation.
 
 ## ER-Diagram
 
-<img src="client/src/assets/er-diagram.png" alt="My Image" width="300"/>
+<img src="client/src/assets/er-diagram.png" alt="ER-Diagram" width="300"/>
+
+![ER Diagram](client/src/assets/er-diagram.png)
 
 
 ## Future Work
