@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../../axiosInstance";
-import { toast } from "react-toastify";
 import HeadingMain from "../HeadingMain";
 
 const ManageUsers = () => {
