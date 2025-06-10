@@ -98,9 +98,7 @@ Refer to the Crow’s Foot ER diagram for visual schema representation.
 
 ## ER-Diagram
 
-<img src="client/src/assets/er-diagram.png" alt="ER-Diagram" width="300"/>
-
-![ER Diagram](client/src/assets/er-diagram.png)
+![ER Diagram](https://github.com/FizaShakil/Restaurant-Management-System/blob/main/Client/src/assets/er-diagram.png)
 
 
 ## Future Work
