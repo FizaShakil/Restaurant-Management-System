@@ -120,5 +120,5 @@ This project is licensed under the MIT License.
 
 ## Contact
 
-For queries, contributions, or feedback, please contact the project maintainer at `fizashakil25@gmail.com`.
+For queries, contributions, or feedback, please contact the project maintainer at `fizashakilofficial@gmail.com`.
 
