@@ -138,7 +138,12 @@ const getBills = asyncHandler(async(req,res)=>{
 
 // Delete bill
 const deleteBill = asyncHandler(async(req,res)=>{
-    const id = req.params.id;
+      const id = Number(req.params.id);
+
+  if (isNaN(id)) {
+    throw new ApiError(400, "Invalid bill ID");
+  }
+  
     const deleteBill = await connection.execute(
         "DELETE from bill WHERE id=?",
         [id]
