@@ -5,24 +5,40 @@ import puppeteer from "puppeteer";
 import path from "path";
 import fs from "fs";
 import { v1 as uuid } from "uuid";
+import { fileURLToPath } from "url";
 import { ApiError } from '../utils/ApiError.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 
-const __dirname = path.resolve(); // root of the project
+const serverRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const reportTemplatePath = path.join(serverRoot, "src", "utils", "report.ejs");
+const pdfDir = path.join(serverRoot, "public", "temp");
 
 
 //generate report
 const generateReport = asyncHandler(async (req, res) => {
   const generateUuid = uuid();
   const orderDetails = req.body;
-  const productDetailsReport = JSON.parse(orderDetails.productDetails);
+  if (!orderDetails?.name || !orderDetails.email || !orderDetails.contactNum ||
+      !orderDetails.paymentMethod || !req.user?.email) {
+    throw new ApiError(400, "All customer and payment fields are required");
+  }
 
-   console.log("Request Body:", req.body);
-   console.log("User Email:", req.user?.email);
+  let productDetailsReport;
+  try {
+    productDetailsReport = typeof orderDetails.productDetails === "string"
+      ? JSON.parse(orderDetails.productDetails)
+      : orderDetails.productDetails;
+  } catch {
+    throw new ApiError(400, "Product details must be valid JSON");
+  }
 
-  console.log("Order Details---> ",orderDetails)
-  // 1. Save order in the database
-  const [insertResult] = await connection.execute(
+  if (!Array.isArray(productDetailsReport) || productDetailsReport.length === 0) {
+    throw new ApiError(400, "Add at least one product to generate a bill");
+  }
+
+  const productDetailsJson = JSON.stringify(productDetailsReport);
+
+  await connection.execute(
     "INSERT INTO bill (name, uuid, email, contactNum, paymentMethod, total, productDetails, createdBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     [
       orderDetails.name,
@@ -31,19 +47,12 @@ const generateReport = asyncHandler(async (req, res) => {
       orderDetails.contactNum,
       orderDetails.paymentMethod,
       orderDetails.totalAmount,
-      orderDetails.productDetails,
+      productDetailsJson,
       req.user.email,
     ]
   );
 
-  if(!orderDetails){
-    throw new ApiError(400, "All fields are required")
-  }
-
-  // 2. Render EJS template to HTML
-  const ejsTemplatePath = path.join(__dirname, "src", "utils", "report.ejs");
-
-  const html = await ejs.renderFile(ejsTemplatePath, {
+  const html = await ejs.renderFile(reportTemplatePath, {
     productDetails: productDetailsReport,
     name: orderDetails.name,
     email: orderDetails.email,
@@ -52,73 +61,38 @@ const generateReport = asyncHandler(async (req, res) => {
     totalAmount: orderDetails.totalAmount,
   });
 
-  // 3. Generate PDF using Puppeteer
   const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: "networkidle0" });
-
-  // Output PDF path in /public/temp
-  const pdfDir = path.join(__dirname, "public", "temp");
-  if (!fs.existsSync(pdfDir)) {
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
     fs.mkdirSync(pdfDir, { recursive: true });
+
+    const pdfPath = path.join(pdfDir, `${generateUuid}.pdf`);
+    await page.pdf({ path: pdfPath, format: "A4" });
+  } finally {
+    await browser.close();
   }
 
-  const pdfPath = path.join(pdfDir, `${generateUuid}.pdf`);
-  await page.pdf({ path: pdfPath, format: "A4" });
-
-  await browser.close();
-
-  // 4. Send response
-  return res.status(200)
-  .json(
-    new ApiResponse(200, generateUuid, "Pdf Generated successfully! ")
+  return res.status(200).json(
+    new ApiResponse(200, generateUuid, "Pdf Generated successfully!")
   );
 });
 
 //get pdf
-const getPdf = asyncHandler(async(req, res)=>{
-    const orderDetails = req.query
-  const productDetailsReport = orderDetails.productDetails;
-
-    const pdfPath = './public/temp/'+orderDetails.uuid+'.pdf';
-
-    if(fs.existsSync(pdfPath)){
-        res.contentType("application/pdf")
-        fs.createReadStream(pdfPath).pipe(res)
-    }
-  const ejsTemplatePath = path.join(__dirname, "src", "utils", "report.ejs");
-  console.log("EJS Path:", ejsTemplatePath);
-
-  // const ejsTemplatePath = path.join(__dirname, "src", "utils", "report.ejs");
-
-  const html = await ejs.renderFile(ejsTemplatePath, {
-    productDetails: productDetailsReport,
-    name: orderDetails.name,
-    email: orderDetails.email,
-    contactNum: orderDetails.contactNum,
-    paymentMethod: orderDetails.paymentMethod,
-    totalAmount: orderDetails.totalAmount,
-  });
-
-  // 3. Generate PDF using Puppeteer
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.setContent(html, { waitUntil: "networkidle0" });
-
-  // Output PDF path in /public/temp
-  const pdfDir = path.join(__dirname, "public", "temp");
-  if (!fs.existsSync(pdfDir)) {
-    fs.mkdirSync(pdfDir, { recursive: true });
+const getPdf = asyncHandler(async (req, res) => {
+  const { uuid: billUuid } = req.query;
+  if (typeof billUuid !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(billUuid)) {
+    throw new ApiError(400, "A valid bill UUID is required");
   }
 
-  await page.pdf({ path: pdfPath, format: "A4" });
+  const pdfPath = path.join(pdfDir, `${billUuid}.pdf`);
+  if (!fs.existsSync(pdfPath)) {
+    throw new ApiError(404, "Bill PDF not found");
+  }
 
-  await browser.close();
-
-  // 4. Send response
-     res.contentType("application/pdf");
-     fs.createReadStream(pdfPath).pipe(res);
-})
+  return res.type("application/pdf").sendFile(pdfPath);
+});
 
 //get bill
 const getBills = asyncHandler(async(req,res)=>{
