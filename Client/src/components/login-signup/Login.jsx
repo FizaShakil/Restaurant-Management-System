@@ -5,7 +5,7 @@ import {useDispatch} from 'react-redux'
 import axiosInstance from '../../axiosInstance';
 
 const Login = () => {
-   const [form, setForm] = useState({ email: " ", password: " " });
+   const [form, setForm] = useState({ email: "", password: "" });
    const dispatch = useDispatch();
    const navigate = useNavigate();
 
@@ -24,7 +24,7 @@ const Login = () => {
       navigate("/dashboard");
     } 
     catch (err) {
-      alert(err.res?.data?.message || "Login Failed");
+      alert(err.response?.data?.message || "Login Failed");
       console.log(err)
     }
   };
