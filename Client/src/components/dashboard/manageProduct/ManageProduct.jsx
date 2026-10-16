@@ -1,92 +1,3 @@
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-// import ProductTable from "./ProductTable";
-// import ProductFormModal from "./ProductFormModal";
-// import { toast } from "react-toastify";
-
-// const ManageProduct = () => {
-//   const [products, setProducts] = useState([]);
-//   const [editProduct, setEditProduct] = useState(null);
-//   const [modalOpen, setModalOpen] = useState(false);
-
-//   const fetchProducts = async () => {
-//     try {
-//       const res = await axios.get("/api/v1/products/get-product-details");
-//       setProducts(res.data);
-//       console.log(res.data)
-//     } 
-//     catch (error) {
-//       console.log("Error fetching products", error)
-//       toast.error("Failed to load products.");
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchProducts();
-//   }, []);
-
-//   const handleEditClick = (product) => {
-//     setEditProduct(product);
-//     setModalOpen(true);
-//   };
-
-//   const handleDelete = async (id) => {
-//     if (confirm("Delete this product?")) {
-//       try {
-//         await axios.delete(`/api/v1/products/delete-product/${id}`);
-//         toast.success("Product deleted!");
-//         fetchProducts();
-//       } 
-//       catch (error) {
-//         toast.error("Failed to delete.");
-//       }
-//     }
-//   };
-
-//   const handleStatusToggle = async (id, status) => {
-//     try {
-//       await axios.patch("/api/v1/products/update-status", {
-//         id,
-//         status: status ? "false" : "true",
-//       });
-//       fetchProducts();
-//     } catch (error) {
-//       toast.error("Status update failed.");
-//     }
-//   };
-
-//   return (
-//     <div className="p-5 w-full">
-//       <div className="flex justify-between items-center mb-4">
-//         <h1 className="text-xl font-bold text-red-900">Manage Product</h1>
-//         <button
-//           onClick={() => { setModalOpen(true); setEditProduct(null); }}
-//           className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-//         >
-//           Add Product
-//         </button>
-//       </div>
-
-//       <ProductTable
-//         products={products}
-//         onEdit={handleEditClick}
-//         onDelete={handleDelete}
-//         onStatusToggle={handleStatusToggle}
-//       />
-
-//       {modalOpen && (
-//         <ProductFormModal
-//           product={editProduct}
-//           onClose={() => setModalOpen(false)}
-//           onRefresh={fetchProducts}
-//         />
-//       )}
-//     </div>
-//   );
-// };
-
-// export default ManageProduct;
-
 import { useEffect, useState } from "react";
 import axiosInstance from '../../../axiosInstance'
 import HeadingMain from "../HeadingMain";
@@ -135,7 +46,7 @@ const ManageProduct = () => {
         data: { id },
       });
       setProducts((prev) =>
-        prev.filter((product) => product.productUniqueID !== productUniqueID)
+        prev.filter((product) => product.id !== id)
       );
     } catch (err) {
       console.error("Failed to delete product:", err);
@@ -144,13 +55,11 @@ const ManageProduct = () => {
 
   const handleToggleStatus = async (product) => {
     try {
-      // const updatedStatus = !product.status;
       const updatedStatus = {
            id: product.id,
            status: product.status === "true" || product.status === true ? "false" : "true",
         };
 
-      // const updatedProduct = { ...product, status: updatedStatus };
       await axiosInstance.patch("/api/v1/products/update-status", updatedStatus);
          setProducts((prev) =>
          prev.map((item) =>
@@ -207,7 +116,6 @@ const ManageProduct = () => {
         <table className="w-full table-auto text-left border border-gray-300">
           <thead className="bg-gray-100">
             <tr>
-              {/* <th className="p-3 border">Image</th> */}
               <th className="p-3 border">Name</th>
               <th className="p-3 border">ID</th>
               <th className="p-3 border">Category</th>
@@ -220,13 +128,6 @@ const ManageProduct = () => {
             {products.length > 0 ? (
               products.map((item) => (
                 <tr key={item.id} className="hover:bg-gray-50">
-                  {/* <td className="p-2 border">
-                    <img
-                      src={item.productImage}
-                      alt={item.name}
-                      className="w-14 h-14 object-cover rounded"
-                    />
-                  </td> */}
                   <td className="p-2 border">{item.name}</td>
                   <td className="p-2 border">{item.id}</td>
                   <td className="p-2 border">{item.categoryName}</td>
