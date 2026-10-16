@@ -1,52 +1,307 @@
-<html>
-    <head>
-        <style>
-            table{
-                font-family: Arial, Helvetica, sans-serif;
-                border-collapse: collapse;
-                width: 100%;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Management System - Bill</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 18mm;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: #263238;
+            background: #ffffff;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 13px;
+            line-height: 1.5;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .invoice {
+            width: 100%;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .invoice-header {
+            position: relative;
+            overflow: hidden;
+            padding: 30px 34px;
+            color: #ffffff;
+            background: #54212b;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .invoice-header::after {
+            position: absolute;
+            top: -76px;
+            right: -35px;
+            width: 230px;
+            height: 230px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 50%;
+            content: "";
+        }
+
+        .brand {
+            position: relative;
+            z-index: 1;
+            margin: 0;
+            color: #f4d7a1;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .header-title {
+            position: relative;
+            z-index: 1;
+            margin: 13px 0 0;
+            color: #ffffff;
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .header-subtitle {
+            position: relative;
+            z-index: 1;
+            margin: 5px 0 0;
+            color: #f0dfe0;
+            font-size: 13px;
+        }
+
+        .section {
+            margin-top: 26px;
+        }
+
+        .section-heading {
+            margin: 0 0 12px;
+            color: #54212b;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .customer-details {
+            width: 100%;
+            border: 1px solid #eadfe0;
+            border-spacing: 0;
+            border-radius: 8px;
+            background: #fcf9f7;
+        }
+
+        .customer-details td {
+            width: 50%;
+            padding: 13px 16px;
+            vertical-align: top;
+        }
+
+        .customer-details tr + tr td {
+            border-top: 1px solid #eadfe0;
+        }
+
+        .customer-details td + td {
+            border-left: 1px solid #eadfe0;
+        }
+
+        .detail-label {
+            display: block;
+            margin-bottom: 3px;
+            color: #8a7375;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .detail-value {
+            color: #30272a;
+            font-size: 13px;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #eadfe0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .items-table thead {
+            color: #ffffff;
+            background: #71313b;
+        }
+
+        .items-table th {
+            padding: 12px 11px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.7px;
+            text-align: left;
+            text-transform: uppercase;
+        }
+
+        .items-table td {
+            padding: 13px 11px;
+            border-top: 1px solid #f0e8e6;
+            color: #393033;
+            vertical-align: top;
+        }
+
+        .items-table tbody tr:nth-child(even) {
+            background: #fcf9f7;
+        }
+
+        .items-table .quantity,
+        .items-table .price,
+        .items-table .subtotal {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .items-table .product-name {
+            font-weight: 600;
+        }
+
+        .total-row {
+            margin-top: 18px;
+            padding: 16px 19px;
+            border: 1px solid #ead7b8;
+            border-radius: 8px;
+            background: #fbf4e8;
+            text-align: right;
+        }
+
+        .total-label {
+            margin-right: 12px;
+            color: #6c5550;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .total-value {
+            color: #54212b;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .invoice-footer {
+            margin-top: 34px;
+            padding-top: 17px;
+            border-top: 1px solid #eadfe0;
+            color: #75686a;
+            text-align: center;
+        }
+
+        .thank-you {
+            margin: 0;
+            color: #54212b;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .footer-note {
+            margin: 5px 0 0;
+            font-size: 11px;
+        }
+
+        @media print {
+            .invoice-header,
+            .items-table thead {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
-            td,th{
-                border: 1px solid #dddddd;
-                text-align: left;
-                padding: 8px;
+
+            .items-table tr {
+                break-inside: avoid;
             }
-        </style>
-    </head>
-    <body>
-        <h3 style="text-align: center;">Restaurant Management System</h3>
-        <table>
-            <tr>
-                <th>Name: <%= name %></th>
-                <th>Email: <%= email %></th>
-            </tr>
-             <tr>
-                <th>Contact Number: <%= contactNum %></th>
-                <th>Payment Method: <%= paymentMethod %></th>
-            </tr>
-        </table>
-        <h3>Product Details: </h3>
-        <table>
-            <tr>
-                <th>Name</th>
-                <th>Category</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Subtotal</th>
-            </tr>
-            <% if(productDetails.length>0) { %>
-                <% productDetails.forEach(product=> { %>
+        }
+    </style>
+</head>
+<body>
+    <main class="invoice">
+        <header class="invoice-header">
+            <p class="brand">Restaurant Management System</p>
+            <h1 class="header-title">Your Bill</h1>
+            <p class="header-subtitle">Thank you for dining with us</p>
+        </header>
+
+        <section class="section" aria-label="Customer details">
+            <h2 class="section-heading">Customer details</h2>
+            <table class="customer-details">
+                <tr>
+                    <td>
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value"><%= name %></span>
+                    </td>
+                    <td>
+                        <span class="detail-label">Email</span>
+                        <span class="detail-value"><%= email %></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <span class="detail-label">Contact number</span>
+                        <span class="detail-value"><%= contactNum %></span>
+                    </td>
+                    <td>
+                        <span class="detail-label">Payment method</span>
+                        <span class="detail-value"><%= paymentMethod %></span>
+                    </td>
+                </tr>
+            </table>
+        </section>
+
+        <section class="section" aria-label="Order details">
+            <h2 class="section-heading">Order details</h2>
+            <table class="items-table">
+                <thead>
                     <tr>
-                        <td><%= product.productName %></td>
-                        <td><%=  product.categoryIName %></td>
-                        <td><%=  product.quantity %></td>
-                        <td><%= product.price %></td>
-                        <td><%= product.total %></td>
+                        <th>Item</th>
+                        <th>Category</th>
+                        <th class="quantity">Qty</th>
+                        <th class="price">Price</th>
+                        <th class="subtotal">Subtotal</th>
                     </tr>
-                    <% }); %>
-                    <% }%>
-        </table>
-        <h3>Total: <%= totalAmount%></h3>
-        <h3>Thankyou for visiting. You're Welcomed again</h3>
-    </body>
+                </thead>
+                <tbody>
+                    <% if (productDetails.length > 0) { %>
+                        <% productDetails.forEach(product => { %>
+                            <tr>
+                                <td class="product-name"><%= product.productName %></td>
+                                <td><%= product.categoryIName %></td>
+                                <td class="quantity"><%= product.quantity %></td>
+                                <td class="price"><%= product.price %></td>
+                                <td class="subtotal"><%= product.total %></td>
+                            </tr>
+                        <% }); %>
+                    <% } %>
+                </tbody>
+            </table>
+
+            <div class="total-row">
+                <span class="total-label">Total</span>
+                <span class="total-value"><%= totalAmount %></span>
+            </div>
+        </section>
+
+        <footer class="invoice-footer">
+            <p class="thank-you">Thank you for visiting!</p>
+            <p class="footer-note">We look forward to welcoming you again.</p>
+        </footer>
+    </main>
+</body>
 </html>
