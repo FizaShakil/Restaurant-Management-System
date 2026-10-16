@@ -12,8 +12,10 @@ try {
   });
 
   console.log("MySQL Database Connected! DB Host:", process.env.DB_HOST);
-} catch (err) {
+} 
+
+catch (err) {
   console.error("MySQL Connection failed:", err);
-}
+} 
 
 export default connection;
