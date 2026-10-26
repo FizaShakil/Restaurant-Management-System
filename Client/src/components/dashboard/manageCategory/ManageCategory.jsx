@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../../axiosInstance";
 import { toast } from "react-toastify";
+import HeadingMain from "../HeadingMain";
 
 const ManageCategory = () => {
   const [categories, setCategories] = useState([]);
@@ -9,30 +10,23 @@ const ManageCategory = () => {
   const [editMode, setEditMode] = useState(false);
   const [categoryId, setCategoryId] = useState(null);
 
-  // Fetch categories on load
   const fetchCategories = async () => {
     try {
       const res = await axiosInstance.get("/api/v1/categories/get-category-details");
       setCategories(res.data.data);
-    } 
-    catch (error) {
-      console.log("Error in fetching categories", error)
+    } catch (error) {
       toast.error("Failed to fetch categories");
     }
   };
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  useEffect(() => { fetchCategories(); }, []);
 
-  // Open modal for Add or Edit
   const handleOpen = (category = null) => {
     if (category) {
       setEditMode(true);
       setName(category.name);
       setCategoryId(category.id);
-    } 
-    else {
+    } else {
       setEditMode(false);
       setName("");
       setCategoryId(null);
@@ -47,98 +41,104 @@ const ManageCategory = () => {
     setCategoryId(null);
   };
 
-  // Submit handler
   const handleSubmit = async () => {
-    if (!name.trim()) {
-      toast.warning("Category name is required");
-      return;
-    }
-
+    if (!name.trim()) { toast.warning("Category name is required"); return; }
     try {
       if (editMode) {
-        // Update category
-        await axiosInstance.patch("/api/v1/categories/update-category-details", {
-          id: categoryId,
-          name,
-        });
+        await axiosInstance.patch("/api/v1/categories/update-category-details", { id: categoryId, name });
         toast.success("Category updated");
-      } 
-      else {
-        // Add category
-        await axiosInstance.post("/api/v1/categories/add-category-details", {
-          name,
-        });
+      } else {
+        await axiosInstance.post("/api/v1/categories/add-category-details", { name });
         toast.success("Category added");
       }
       fetchCategories();
       handleClose();
-    } 
-    catch (error) {
-      console.log("Error", err)
+    } catch (error) {
       toast.error("Error saving category");
     }
   };
 
   return (
-    <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold">Manage Category</h2>
-        <button
-          className="bg-red-800 text-white px-4 py-2 rounded"
-          onClick={() => handleOpen()}
-        >
+    <div className="p-8 max-w-4xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <HeadingMain h="Manage Categories" subtitle="Add and edit your product categories" />
+        <button className="btn-primary flex items-center gap-2" onClick={() => handleOpen()}>
+          <i className="fa fa-plus text-xs"></i>
           Add Category
         </button>
       </div>
 
-      {/* Category Table */}
-      <table className="w-full border">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="p-2 text-left">Name</th>
-            <th className="p-2 text-left">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {categories.map((cat) => (
-            <tr key={cat.id} className="border-t">
-              <td className="p-2">{cat.name}</td>
-              <td className="p-2">
-                <i className="fas fa-edit" 
-                onClick={() => handleOpen(cat)}></i>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        {categories.length === 0 ? (
+          <div className="py-16 text-center text-slate-400">
+            <i className="fa fa-tags text-3xl mb-3 block"></i>
+            <p className="text-sm">No categories yet. Add one to get started.</p>
+          </div>
+        ) : (
+          <table className="dash-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Category Name</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.map((cat, idx) => (
+                <tr key={cat.id}>
+                  <td className="text-slate-400 font-mono text-xs w-12">{idx + 1}</td>
+                  <td className="font-medium text-slate-800">{cat.name}</td>
+                  <td className="w-20">
+                    <button
+                      onClick={() => handleOpen(cat)}
+                      className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-rose-600 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors"
+                    >
+                      <i className="fa fa-pencil"></i>
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       {/* Modal */}
       {open && (
-        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white p-6 rounded shadow-lg w-96">
-            <h3 className="text-lg font-semibold mb-4">
-              {editMode ? "Edit Category" : "Add Category"}
-            </h3>
-            <input
-              type="text"
-              placeholder="Category name"
-              className="w-full p-2 border border-gray-300 rounded mb-4"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={handleSubmit}
-                className="bg-green-500 text-white px-4 py-2 rounded"
-              >
-                {editMode ? "Update" : "Add"}
+        <div className="modal-overlay" onClick={handleClose}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-slate-800">
+                {editMode ? "Edit Category" : "New Category"}
+              </h3>
+              <button onClick={handleClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <i className="fa fa-times text-lg"></i>
               </button>
-              <button
-                onClick={handleClose}
-                className="bg-gray-400 text-white px-4 py-2 rounded"
-              >
-                Cancel
-              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">
+                  Category Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Beverages"
+                  className="dash-input"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-3 pt-1">
+                <button onClick={handleSubmit} className="btn-primary flex-1">
+                  {editMode ? "Update Category" : "Add Category"}
+                </button>
+                <button onClick={handleClose} className="btn-secondary flex-1">
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -148,10 +148,3 @@ const ManageCategory = () => {
 };
 
 export default ManageCategory;
-
-
-{/* <HeadingMain h={"Manage Category"}/>
-                 <button
-                className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-700"
-              >
-                <Link to='/addcategory'>Add Category</Link> */}

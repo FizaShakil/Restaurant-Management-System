@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axiosInstance from '../../../axiosInstance'
+import axiosInstance from "../../../axiosInstance";
 import HeadingMain from "../HeadingMain";
 import { Link } from "react-router-dom";
 
@@ -18,9 +18,7 @@ const ManageProduct = () => {
     try {
       const res = await axiosInstance.get("/api/v1/products/get-product-details");
       setProducts(res.data.data);
-      console.log(res.data.data)
-    } 
-    catch (err) {
+    } catch (err) {
       console.log("Error fetching products:", err);
     }
   };
@@ -29,25 +27,16 @@ const ManageProduct = () => {
     try {
       const res = await axiosInstance.get("/api/v1/products/get-all-categories");
       setCategories(res.data.data);
-      console.log(res.data.data)
-    } 
-    catch (error) {
-      console.log("Error fetching categories:", error);
+    } catch (error) {
       alert("Failed to load categories");
     }
   };
 
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this product?");
-    if (!confirmDelete) return;
-
+    if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
-      await axiosInstance.delete("/api/v1/products/delete-product-details", {
-        data: { id },
-      });
-      setProducts((prev) =>
-        prev.filter((product) => product.id !== id)
-      );
+      await axiosInstance.delete("/api/v1/products/delete-product-details", { data: { id } });
+      setProducts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Failed to delete product:", err);
     }
@@ -56,175 +45,149 @@ const ManageProduct = () => {
   const handleToggleStatus = async (product) => {
     try {
       const updatedStatus = {
-           id: product.id,
-           status: product.status === "true" || product.status === true ? "false" : "true",
-        };
-
+        id: product.id,
+        status: product.status === "true" || product.status === true ? "false" : "true",
+      };
       await axiosInstance.patch("/api/v1/products/update-status", updatedStatus);
-         setProducts((prev) =>
-         prev.map((item) =>
-         item.id === product.id
-          ? { ...item, status: updatedStatus.status }
-          : item
-         )
-       );
-    } 
-    catch (err) {
+      setProducts((prev) =>
+        prev.map((item) => (item.id === product.id ? { ...item, status: updatedStatus.status } : item))
+      );
+    } catch (err) {
       console.error("Failed to update status:", err);
     }
   };
 
-  const openEditModal = (product) => {
-    setSelectedProduct(product);
-    setEditModalOpen(true);
-  };
+  const openEditModal = (product) => { setSelectedProduct(product); setEditModalOpen(true); };
 
   const handleEditChange = (e) => {
     const { name, value } = e.target;
-    setSelectedProduct((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setSelectedProduct((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
       await axiosInstance.patch("/api/v1/products/update-product-details", selectedProduct);
-      setProducts((prev) =>
-        prev.map((item) =>
-          item.id === selectedProduct.id ? selectedProduct : item
-        )
-      );
+      setProducts((prev) => prev.map((item) => (item.id === selectedProduct.id ? selectedProduct : item)));
       setEditModalOpen(false);
-      alert("Updated product successfully")
-    } 
-    catch (err) {
+      alert("Product updated successfully");
+    } catch (err) {
       console.log("Failed to update product:", err);
     }
   };
 
   return (
-    <div className="p-6 w-full">
-      <HeadingMain h={'Manage Product'}/>
-           <button
-          className="bg-red-800 text-white px-4 py-2 rounded hover:bg-red-700"
-        >
-          <Link to='/addproduct'>Add Product</Link>
-        </button>
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto text-left border border-gray-300">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="p-3 border">Name</th>
-              <th className="p-3 border">ID</th>
-              <th className="p-3 border">Category</th>
-              <th className="p-3 border">Price</th>
-              <th className="p-3 border">Status</th>
-              <th className="p-3 border">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {products.length > 0 ? (
-              products.map((item) => (
-                <tr key={item.id} className="hover:bg-gray-50">
-                  <td className="p-2 border">{item.name}</td>
-                  <td className="p-2 border">{item.id}</td>
-                  <td className="p-2 border">{item.categoryName}</td>
-                  <td className="p-2 border">PKR {item.price}</td>
-                  <td className="p-2 border text-center">
-                    <label className="inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={item.status === "true"}
-                        onChange={() => handleToggleStatus(item)}
-                      />
-                      <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:bg-green-500 relative after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
-                    </label>
-                  </td>
-                  <td className="p-2 border text-center space-x-2">
-                    <button
-                      onClick={() => openEditModal(item)}
-                      className="text-blue-500 hover:text-blue-700 fas fa-pen"
-                      title="Edit"
-                    ></button>
-                    <button
-                      onClick={() => handleDelete(item.id)}
-                      className="text-red-500 hover:text-red-700 fas fa-trash"
-                      title="Delete"
-                    ></button>
-                  </td>
+    <div className="p-8 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <HeadingMain h="Manage Products" subtitle="View, edit and manage your product catalog" />
+        <Link to="/addproduct" className="btn-primary flex items-center gap-2">
+          <i className="fa fa-plus text-xs"></i>
+          Add Product
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          {products.length === 0 ? (
+            <div className="py-16 text-center text-slate-400">
+              <i className="fa fa-box text-3xl mb-3 block"></i>
+              <p className="text-sm">No products found.</p>
+            </div>
+          ) : (
+            <table className="dash-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>ID</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th className="text-center">Status</th>
+                  <th className="text-center">Actions</th>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="7" className="p-4 text-center text-gray-500">
-                  No products found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              </thead>
+              <tbody>
+                {products.map((item) => (
+                  <tr key={item.id}>
+                    <td className="font-medium text-slate-800">{item.name}</td>
+                    <td className="text-slate-400 font-mono text-xs">{item.id}</td>
+                    <td>
+                      <span className="inline-block bg-slate-100 text-slate-600 text-xs font-medium px-2 py-0.5 rounded-full">
+                        {item.categoryName}
+                      </span>
+                    </td>
+                    <td className="font-medium">PKR {item.price}</td>
+                    <td className="text-center">
+                      <label className="inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
+                          checked={item.status === "true"}
+                          onChange={() => handleToggleStatus(item)}
+                        />
+                        <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:bg-emerald-500 relative after:content-[''] after:absolute after:top-0.5 after:left-[3px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                      </label>
+                    </td>
+                    <td className="text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => openEditModal(item)}
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-blue-600 px-2 py-1 rounded-lg hover:bg-blue-50 transition-colors"
+                          title="Edit"
+                        >
+                          <i className="fa fa-pencil"></i>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-rose-600 px-2 py-1 rounded-lg hover:bg-rose-50 transition-colors"
+                          title="Delete"
+                        >
+                          <i className="fa fa-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
 
       {/* Edit Modal */}
       {editModalOpen && selectedProduct && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded shadow-md w-96">
-            <h3 className="text-lg font-semibold mb-4">Edit Product</h3>
+        <div className="modal-overlay" onClick={() => setEditModalOpen(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-semibold text-slate-800">Edit Product</h3>
+              <button onClick={() => setEditModalOpen(false)} className="text-slate-400 hover:text-slate-600">
+                <i className="fa fa-times text-lg"></i>
+              </button>
+            </div>
             <form onSubmit={handleEditSubmit} className="space-y-3">
-              <input
-                type="text"
-                name="name"
-                value={selectedProduct.name}
-                onChange={handleEditChange}
-                placeholder="Product Name"
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                name="description"
-                value={selectedProduct.description}
-                onChange={handleEditChange}
-                placeholder="Description"
-                className="w-full p-2 border rounded"
-              />
-              <input
-                type="text"
-                name="price"
-                value={selectedProduct.price}
-                onChange={handleEditChange}
-                placeholder="Price"
-                className="w-full p-2 border rounded"
-              />
-            <select
-               name="categoryId"
-               value={selectedProduct.categoryId}
-               onChange={handleEditChange}
-               className="w-full mb-6 p-2 border rounded"
-              >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                 <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-               ))}
-             </select>
-              <div className="flex justify-end space-x-3 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setEditModalOpen(false)}
-                  className="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded"
-                >
-                  Update
-                </button>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Product Name</label>
+                <input type="text" name="name" value={selectedProduct.name} onChange={handleEditChange} placeholder="Product Name" className="dash-input" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Description</label>
+                <input type="text" name="description" value={selectedProduct.description} onChange={handleEditChange} placeholder="Description" className="dash-input" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Price (PKR)</label>
+                <input type="text" name="price" value={selectedProduct.price} onChange={handleEditChange} placeholder="Price" className="dash-input" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1.5">Category</label>
+                <select name="categoryId" value={selectedProduct.categoryId} onChange={handleEditChange} className="dash-input">
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" className="btn-primary flex-1">Update Product</button>
+                <button type="button" onClick={() => setEditModalOpen(false)} className="btn-secondary flex-1">Cancel</button>
               </div>
             </form>
           </div>
